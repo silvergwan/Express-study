@@ -15,7 +15,7 @@ const accounts: Record<string, Account> = {
 };
 
 // GET /accounts/:id — 계좌 조회
-app.get("/accounts/:id", (req: Request, res: Response) => {
+app.get("/accounts/:id", (req: Request<{ id: string }>, res: Response) => {
   const account = accounts[req.params.id];
 
   if (!account) {
