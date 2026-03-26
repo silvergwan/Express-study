@@ -23,7 +23,7 @@ export function withdraw(account: Account, amount: number): Account {
   if (account.status !== "active") {
     throw new Error("활성된 계좌만 입급이 가능합니다.");
   }
-  if (account.balance > amount) {
+  if (account.balance < amount) {
     throw new Error("잔액이 부족합니다.");
   }
 
