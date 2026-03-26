@@ -42,14 +42,9 @@ app.get("/accounts/:id", findAccount, (req: Request, res: Response) => {
 // POST /account/:id/deposit - 입급
 app.post(
   "/accounts/:id/deposit",
+  findAccount,
   (req: Request<{ id: string }>, res: Response) => {
-    const account = accounts[req.params.id];
-
-    if (!account) {
-      res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
-      return;
-    }
-
+    const account = res.locals.account;
     const { amount } = req.body;
 
     try {
@@ -67,13 +62,9 @@ app.post(
 // POST /account/:id/withdraw - 출금
 app.post(
   "/accounts/:id/withdraw",
+  findAccount,
   (req: Request<{ id: string }>, res: Response) => {
-    const account = accounts[req.params.id];
-
-    if (!account) {
-      res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
-      return;
-    }
+    const account = res.locals.account;
 
     const { amount } = req.body;
 
