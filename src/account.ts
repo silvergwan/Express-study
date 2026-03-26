@@ -1,7 +1,7 @@
 export interface Account {
   id: string;
   balance: number;
-  readonly accounterNumber: string;
+  readonly accountNumber: string;
   status: "active" | "frozen" | "closed";
 }
 
