@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { Account, deposit, withdraw } from "./account";
 
 const app = express();
@@ -13,6 +13,24 @@ const accounts: Record<string, Account> = {
     status: "active",
   },
 };
+
+// 계좌 검증 미들웨어
+function findAccount(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+): void {
+  const account = accounts[req.params.id];
+
+  if (!account) {
+    res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
+    return;
+  }
+
+  res.locals.account = account;
+
+  next();
+}
 
 // GET /accounts/:id — 계좌 조회
 app.get("/accounts/:id", (req: Request<{ id: string }>, res: Response) => {
