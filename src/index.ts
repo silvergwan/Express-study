@@ -13,3 +13,15 @@ const accounts: Record<string, Account> = {
     status: "active",
   },
 };
+
+// GET /accounts/:id — 계좌 조회
+app.get("/accounts/:id", (req: Request, res: Response) => {
+  const account = accounts[req.params.id];
+
+  if (!account) {
+    res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
+    return;
+  }
+
+  res.status(200).json(account);
+});
