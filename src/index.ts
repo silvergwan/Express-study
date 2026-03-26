@@ -33,13 +33,8 @@ function findAccount(
 }
 
 // GET /accounts/:id — 계좌 조회
-app.get("/accounts/:id", (req: Request<{ id: string }>, res: Response) => {
-  const account = accounts[req.params.id];
-
-  if (!account) {
-    res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
-    return;
-  }
+app.get("/accounts/:id", findAccount, (req: Request, res: Response) => {
+  const account = res.locals.account;
 
   res.status(200).json(account);
 });
