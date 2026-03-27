@@ -43,7 +43,7 @@ app.get("/accounts/:id", findAccount, (req: Request, res: Response) => {
 app.post(
   "/accounts/:id/deposit",
   findAccount,
-  (req: Request<{ id: string }>, res: Response) => {
+  (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     const account = res.locals.account;
     const { amount } = req.body;
 
@@ -52,9 +52,7 @@ app.post(
       accounts[req.params.id] = updated;
       res.status(200).json(updated);
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      }
+      next(error);
     }
   },
 );
@@ -63,7 +61,7 @@ app.post(
 app.post(
   "/accounts/:id/withdraw",
   findAccount,
-  (req: Request<{ id: string }>, res: Response) => {
+  (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     const account = res.locals.account;
 
     const { amount } = req.body;
@@ -73,12 +71,15 @@ app.post(
       accounts[req.params.id] = updated;
       res.status(200).json(updated);
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      }
+      next(error);
     }
   },
 );
+
+// 에러 처리 미들웨어
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  res.status(400).json({ message: err.message });
+});
 
 app.listen(3000, () => {
   console.log("서버 실행 중: http://localhost:3000");
