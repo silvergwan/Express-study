@@ -1,10 +1,10 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import { Account, deposit, withdraw } from "./account";
 
 const app = express();
-app.use(express.json());
+app.use(express.json()); // Body를 JSON으로 파싱해주는 미들웨어
 
-// 임시 DB
+// 임시 DB (메모리)
 const accounts: Record<string, Account> = {
   "1": {
     id: "1",
@@ -14,12 +14,8 @@ const accounts: Record<string, Account> = {
   },
 };
 
-// 계좌 검증 미들웨어
-function findAccount(
-  req: Request<{ id: string }>,
-  res: Response,
-  next: NextFunction,
-): void {
+// GET /accounts/:id — 계좌 조회
+app.get("/accounts/:id", (req: Request, res: Response) => {
   const account = accounts[req.params.id];
 
   if (!account) {
@@ -27,58 +23,51 @@ function findAccount(
     return;
   }
 
-  res.locals.account = account;
-
-  next();
-}
-
-// GET /accounts/:id — 계좌 조회
-app.get("/accounts/:id", findAccount, (req: Request, res: Response) => {
-  const account = res.locals.account;
-
   res.status(200).json(account);
 });
 
-// POST /account/:id/deposit - 입급
-app.post(
-  "/accounts/:id/deposit",
-  findAccount,
-  (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
-    const account = res.locals.account;
-    const { amount } = req.body;
+// POST /accounts/:id/deposit — 입금
+app.post("/accounts/:id/deposit", (req: Request, res: Response) => {
+  const account = accounts[req.params.id];
 
-    try {
-      const updated = deposit(account, amount);
-      accounts[req.params.id] = updated;
-      res.status(200).json(updated);
-    } catch (error) {
-      next(error);
+  if (!account) {
+    res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
+    return;
+  }
+
+  const { amount } = req.body;
+
+  try {
+    const updated = deposit(account, amount);
+    accounts[req.params.id] = updated;
+    res.status(200).json(updated);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
     }
-  },
-);
+  }
+});
 
-// POST /account/:id/withdraw - 출금
-app.post(
-  "/accounts/:id/withdraw",
-  findAccount,
-  (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
-    const account = res.locals.account;
+// POST /accounts/:id/withdraw — 출금
+app.post("/accounts/:id/withdraw", (req: Request, res: Response) => {
+  const account = accounts[req.params.id];
 
-    const { amount } = req.body;
+  if (!account) {
+    res.status(404).json({ message: "계좌를 찾을 수 없습니다." });
+    return;
+  }
 
-    try {
-      const updated = withdraw(account, amount);
-      accounts[req.params.id] = updated;
-      res.status(200).json(updated);
-    } catch (error) {
-      next(error);
+  const { amount } = req.body;
+
+  try {
+    const updated = withdraw(account, amount);
+    accounts[req.params.id] = updated;
+    res.status(200).json(updated);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
     }
-  },
-);
-
-// 에러 처리 미들웨어
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  res.status(400).json({ message: err.message });
+  }
 });
 
 app.listen(3000, () => {
