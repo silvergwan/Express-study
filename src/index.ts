@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { Account, deposit, withdraw } from "./account";
 
 const app = express();
@@ -29,7 +29,7 @@ app.get("/accounts/:id", (req: Request<{ id: string }>, res: Response) => {
 // POST /accounts/:id/deposit — 입금
 app.post(
   "/accounts/:id/deposit",
-  (req: Request<{ id: string }>, res: Response) => {
+  (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     const account = accounts[req.params.id];
 
     if (!account) {
@@ -49,9 +49,8 @@ app.post(
       accounts[req.params.id] = updated;
       res.status(200).json(updated);
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      }
+      // catch를 next로 변경
+      next(error);
     }
   },
 );
@@ -59,7 +58,7 @@ app.post(
 // POST /accounts/:id/withdraw — 출금
 app.post(
   "/accounts/:id/withdraw",
-  (req: Request<{ id: string }>, res: Response) => {
+  (req: Request<{ id: string }>, res: Response, next) => {
     const account = accounts[req.params.id];
 
     if (!account) {
@@ -79,12 +78,16 @@ app.post(
       accounts[req.params.id] = updated;
       res.status(200).json(updated);
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      }
+      // 동일함니다.
+      next(error);
     }
   },
 );
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.message);
+  res.status(400).json({ message: err.message });
+});
 
 app.listen(3000, () => {
   console.log("서버 실행 중: http://localhost:3000");
