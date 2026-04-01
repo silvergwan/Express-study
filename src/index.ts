@@ -39,6 +39,11 @@ app.post(
 
     const { amount } = req.body;
 
+    if (typeof amount !== "number" || isNaN(amount)) {
+      res.status(400).json({ message: "amount는 숫자여야 합니다." });
+      return;
+    }
+
     try {
       const updated = deposit(account, amount);
       accounts[req.params.id] = updated;
